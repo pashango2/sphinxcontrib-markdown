@@ -205,47 +205,54 @@ class Serializer(object):
         return nodes.raw(format='html', text="<br/>")
 
     def visit_table(self, element):
-        table_node = nodes.table()
-        tgroup_node = nodes.tgroup()
-        table_node += tgroup_node
-
         headers = []
         rows = [[]]
         for ch_element in element.iter():
             if ch_element.tag == "th":
-                print(ch_element.attrib, ch_element.tag)
                 headers.append(ch_element.text)
             elif ch_element.tag == "td":
-                print(ch_element.attrib, ch_element.tag)
-                rows[-1].append(ch_element.text)
+                rows[-1].append((ch_element.text, ch_element.attrib.get("align")))
             elif ch_element.tag == "tr":
                 if rows[-1]:
                     rows.append([])
 
+        # Not: http://agateau.com/2015/docutils-snippets/
+        table_node = nodes.table()
+        tgroup_node = nodes.tgroup(cols=len(headers))
+        table_node += tgroup_node
+
+        # add colspec
+        for x in range(len(headers)):
+            tgroup_node += nodes.colspec(colwidth=1)
+
         # add thead
         thead_node = nodes.thead()
-        header_row_node = nodes.row()
-        for header in headers:
-            entry = nodes.entry(text=header)
-            header_row_node += entry
-        thead_node += header_row_node
         tgroup_node += thead_node
+
+        header_row_node = nodes.row()
+        thead_node += header_row_node
+        for header in headers:
+            entry = nodes.entry()
+            header_row_node += entry
+            entry += nodes.paragraph(text=header)
 
         # add tbody
         tbody_node = nodes.tbody()
+        tgroup_node += tbody_node
         for row in rows:
             row_node = nodes.row()
-            for td in row:
-                entry = nodes.entry(text=td)
+            for text, align in row:
+                entry = nodes.entry()
                 row_node += entry
+                entry += nodes.paragraph(text=text, align=align)
+
             tbody_node += row_node
-        tgroup_node += tbody_node
 
         return table_node
 
 
 def md2node(text, extensions=None):
-    md = Markdown(extensions or [])
+    md = Markdown(extensions or ["gfm"])
     md.serializer = Serializer(md)
     md.stripTopLevelTags = False
     md.postprocessors = OrderedDict()
