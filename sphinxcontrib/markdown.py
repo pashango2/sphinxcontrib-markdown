@@ -201,9 +201,51 @@ class Serializer(object):
     def visit_blockquote(self, element):
         return self.make_node(nodes.literal_block, element)
 
+    def visit_br(self, _):
+        return nodes.raw(format='html', text="<br/>")
 
-def md2node(text):
-    md = Markdown()
+    def visit_table(self, element):
+        table_node = nodes.table()
+        tgroup_node = nodes.tgroup()
+        table_node += tgroup_node
+
+        headers = []
+        rows = [[]]
+        for ch_element in element.iter():
+            if ch_element.tag == "th":
+                print(ch_element.attrib, ch_element.tag)
+                headers.append(ch_element.text)
+            elif ch_element.tag == "td":
+                print(ch_element.attrib, ch_element.tag)
+                rows[-1].append(ch_element.text)
+            elif ch_element.tag == "tr":
+                if rows[-1]:
+                    rows.append([])
+
+        # add thead
+        thead_node = nodes.thead()
+        header_row_node = nodes.row()
+        for header in headers:
+            entry = nodes.entry(text=header)
+            header_row_node += entry
+        thead_node += header_row_node
+        tgroup_node += thead_node
+
+        # add tbody
+        tbody_node = nodes.tbody()
+        for row in rows:
+            row_node = nodes.row()
+            for td in row:
+                entry = nodes.entry(text=td)
+                row_node += entry
+            tbody_node += row_node
+        tgroup_node += tbody_node
+
+        return table_node
+
+
+def md2node(text, extensions=None):
+    md = Markdown(extensions or [])
     md.serializer = Serializer(md)
     md.stripTopLevelTags = False
     md.postprocessors = OrderedDict()

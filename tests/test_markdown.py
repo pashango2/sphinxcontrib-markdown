@@ -576,6 +576,38 @@ class TestSphinxcontrib(unittest.TestCase):
         self.assertIsInstance(quote[2][0][2], nodes.Text)
         self.assertEqual(' world"', quote[2][0][2])
 
+    def test_gfm(self):
+        markdown = u"""
+        | name  | date |  number |
+        | --- |:-:| --:|
+        | A | 2017/01/01 | 123 |
+        | B | 2017/01/01 | 456 |
+        | C | -          |  -  |
+        """
+        doc = md2node(dedent(markdown), ["gfm"])
+        print(doc)
+        # self.assertIsInstance(doc, nodes.container)
+        # self.assertEqual(1, len(doc))
+        #
+        # self.assertIsInstance(doc[0], nodes.section)
+        # self.assertEqual('Headings', doc[0][0].astext())
+        # self.assertEqual('He wrote:', doc[0][1].astext())
+        #
+        # quote = doc[0][2]
+        # self.assertIsInstance(quote, nodes.literal_block)
+        # self.assertIsInstance(quote[0], nodes.paragraph)
+        # self.assertEqual('Hello world', quote[0].astext())
+        # self.assertIsInstance(quote[1], nodes.paragraph)
+        # self.assertEqual('She wrote:', quote[1].astext())
+        # self.assertIsInstance(quote[2], nodes.literal_block)
+        # self.assertIsInstance(quote[2][0], nodes.paragraph)
+        # self.assertIsInstance(quote[2][0][0], nodes.Text)
+        # self.assertEqual('Hello "this ', quote[2][0][0])
+        # self.assertIsInstance(quote[2][0][1], nodes.emphasis)
+        # self.assertEqual('beautiful', quote[2][0][1][0])
+        # self.assertIsInstance(quote[2][0][2], nodes.Text)
+        # self.assertEqual(' world"', quote[2][0][2])
+
     @with_app(buildername='html', srcdir="tests/examples/basic", copy_srcdir_to_tmpdir=True)
     def test_parser(self, app, status, warnings):
         app.build()
