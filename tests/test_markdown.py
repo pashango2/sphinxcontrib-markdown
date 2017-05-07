@@ -576,6 +576,32 @@ class TestSphinxcontrib(unittest.TestCase):
         self.assertIsInstance(quote[2][0][2], nodes.Text)
         self.assertEqual(' world"', quote[2][0][2])
 
+    def test_table(self):
+        markdown = u"""
+        | a | b | c |
+        |---|:-:|--:|
+        |a1 |b1 |c1 |
+        """
+        doc = md2node(dedent(markdown))
+        self.assertIsInstance(doc, nodes.container)
+        self.assertEqual(1, len(doc))
+
+        self.assertIsInstance(doc[0], nodes.table)
+        self.assertIsInstance(doc[0][0], nodes.tgroup)
+        self.assertIsInstance(doc[0][0][0], nodes.colspec)
+        self.assertIsInstance(doc[0][0][1], nodes.colspec)
+        self.assertIsInstance(doc[0][0][2], nodes.colspec)
+        self.assertIsInstance(doc[0][0][3], nodes.thead)
+        self.assertIsInstance(doc[0][0][3][0], nodes.row)
+        self.assertEqual('a', doc[0][0][3][0][0].astext())
+        self.assertEqual('b', doc[0][0][3][0][1].astext())
+        self.assertEqual('c', doc[0][0][3][0][2].astext())
+        self.assertIsInstance(doc[0][0][4], nodes.tbody)
+        self.assertIsInstance(doc[0][0][4][0], nodes.row)
+        self.assertEqual('a1', doc[0][0][4][0][0].astext())
+        self.assertEqual('b1', doc[0][0][4][0][1].astext())
+        self.assertEqual('c1', doc[0][0][4][0][2].astext())
+
     @with_app(buildername='html', srcdir="tests/examples/basic", copy_srcdir_to_tmpdir=True)
     def test_parser(self, app, status, warnings):
         app.build()

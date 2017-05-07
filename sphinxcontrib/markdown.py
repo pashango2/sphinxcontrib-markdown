@@ -201,9 +201,58 @@ class Serializer(object):
     def visit_blockquote(self, element):
         return self.make_node(nodes.literal_block, element)
 
+    def visit_br(self, _):
+        return nodes.raw(format='html', text="<br/>")
+
+    def visit_table(self, element):
+        headers = []
+        rows = [[]]
+        for ch_element in element.iter():
+            if ch_element.tag == "th":
+                headers.append(ch_element.text)
+            elif ch_element.tag == "td":
+                rows[-1].append((ch_element.text, ch_element.attrib.get("align")))
+            elif ch_element.tag == "tr":
+                if rows[-1]:
+                    rows.append([])
+
+        # Not: http://agateau.com/2015/docutils-snippets/
+        table_node = nodes.table()
+        tgroup_node = nodes.tgroup(cols=len(headers))
+        table_node += tgroup_node
+
+        # add colspec
+        for x in range(len(headers)):
+            tgroup_node += nodes.colspec(colwidth=1)
+
+        # add thead
+        thead_node = nodes.thead()
+        tgroup_node += thead_node
+
+        header_row_node = nodes.row()
+        thead_node += header_row_node
+        for header in headers:
+            entry = nodes.entry()
+            header_row_node += entry
+            entry += nodes.paragraph(text=header)
+
+        # add tbody
+        tbody_node = nodes.tbody()
+        tgroup_node += tbody_node
+        for row in rows:
+            row_node = nodes.row()
+            for text, align in row:
+                entry = nodes.entry()
+                row_node += entry
+                entry += nodes.paragraph(text=text, align=align)
+
+            tbody_node += row_node
+
+        return table_node
+
 
 def md2node(text):
-    md = Markdown()
+    md = Markdown(["gfm"])
     md.serializer = Serializer(md)
     md.stripTopLevelTags = False
     md.postprocessors = OrderedDict()
