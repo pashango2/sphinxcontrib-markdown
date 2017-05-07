@@ -251,8 +251,8 @@ class Serializer(object):
         return table_node
 
 
-def md2node(text, extensions=None):
-    md = Markdown(extensions or ["gfm"])
+def md2node(text):
+    md = Markdown(["gfm"])
     md.serializer = Serializer(md)
     md.stripTopLevelTags = False
     md.postprocessors = OrderedDict()
