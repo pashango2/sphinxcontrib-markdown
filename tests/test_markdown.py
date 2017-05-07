@@ -602,6 +602,15 @@ class TestSphinxcontrib(unittest.TestCase):
         self.assertEqual('b1', doc[0][0][4][0][1].astext())
         self.assertEqual('c1', doc[0][0][4][0][2].astext())
 
+    def test_math(self):
+        markdown = u"""
+```math
+e^{i\pi} = -1
+```
+        """
+        doc = md2node(dedent(markdown))
+        print(doc)
+
     @with_app(buildername='html', srcdir="tests/examples/basic", copy_srcdir_to_tmpdir=True)
     def test_parser(self, app, status, warnings):
         app.build()
