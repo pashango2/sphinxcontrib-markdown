@@ -4,7 +4,7 @@ import sys
 from docutils import nodes
 from textwrap import dedent
 from sphinx_testing import with_app
-from sphinxcontrib.markdown import md2node
+from sphinxcontrib.markdown import md2node, preprocess
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -602,14 +602,49 @@ class TestSphinxcontrib(unittest.TestCase):
         self.assertEqual('b1', doc[0][0][4][0][1].astext())
         self.assertEqual('c1', doc[0][0][4][0][2].astext())
 
+    def test_preprocess(self):
+        markdown = u"""
+```math
+e^{i\pi} = -1
+```
+        """.strip()
+        text = preprocess(dedent(markdown))
+
+        answer = u"""
+<!--math
+e^{i\pi} = -1
+-->
+        """.strip()
+        self.assertEqual(answer, text)
+
     def test_math(self):
         markdown = u"""
 ```math
 e^{i\pi} = -1
 ```
         """
+
         doc = md2node(dedent(markdown))
-        print(doc)
+        self.assertIsInstance(doc, nodes.container)
+        self.assertEqual(1, len(doc))
+
+        self.assertIsInstance(doc[0], nodes.paragraph)
+        self.assertIsInstance(doc[0][0], nodes.math)
+        self.assertEqual('e^{i\pi} = -1', doc[0][0].astext())
+
+    def test_math2(self):
+        markdown = u"""
+``` math
+F(s)=\int_{0}^{\infty}f(t)e^{-st}dt
+```
+        """
+        doc = md2node(dedent(markdown))
+        self.assertIsInstance(doc, nodes.container)
+        self.assertEqual(1, len(doc))
+
+        self.assertIsInstance(doc[0], nodes.paragraph)
+        self.assertIsInstance(doc[0][0], nodes.math_block)
+        self.assertEqual('F(s)=\int_{0}^{\infty}f(t)e^{-st}dt', doc[0][0].astext())
 
     @with_app(buildername='html', srcdir="tests/examples/basic", copy_srcdir_to_tmpdir=True)
     def test_parser(self, app, status, warnings):
