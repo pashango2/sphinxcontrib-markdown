@@ -276,11 +276,14 @@ def preprocess(text):
     end_re = re.compile("^\s*```\s*$")
 
     new_lines = []
+    stack_count = 0
     for line in text.splitlines():
         if parse_re.match(line):
             new_lines += ["<!--math"]
-        elif end_re.match(line):
+            stack_count += 1
+        elif end_re.match(line) and stack_count > 0:
             new_lines += ["-->"]
+            stack_count -= 1
         else:
             new_lines += [line]
 
